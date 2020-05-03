@@ -1,0 +1,66 @@
+Transform: AWS::Serverless-2016-10-31
+Resources:
+  EntriesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./lambda
+      Handler: index.entriesHandler
+      Runtime: nodejs12.x
+      Events:
+        lambdaGetAllEntries:
+          Type: Api
+          Properties:
+              Path: /entries
+              Method: GET
+        lambdaGetEntry:
+            Type: Api
+            Properties:
+                Path: /entries/{entryId}
+                Method: GET
+        lambdaAddEntry:
+            Type: Api
+            Properties:
+                Path: /entries
+                Method: POST
+        lambdaUpdateEntry:
+            Type: Api
+            Properties:
+                Path: /entries/{entryId}
+                Method: PUT
+        lambdaDeleteEntry:
+            Type: Api
+            Properties:
+                Path: /entries/{entryId}
+                Method: DELETE
+        lambdaAddComment:
+            Type: Api
+            Properties:
+                Path: /entries/{entryId}/comments
+                Method: POST
+        lambdaDeleteComment:
+            Type: Api
+            Properties:
+                Path: /entries/{entryId}/comments/{commentId}
+                Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: entries
+
+  EntryTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+        TableName: entries
+        AttributeDefinitions:
+            -   AttributeName: entryId
+                AttributeType: S
+        KeySchema:
+            -   AttributeName: entryId
+                KeyType: HASH
+        ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+
+Outputs:
+  PublicApi:
+    Description: "API Gateway endpoint URL for Prod stage for Entries function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/entries/"
